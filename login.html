@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Rizal Learning Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+    <main class="auth-card">
+        <div class="logo">R</div>
+        <p class="eyebrow">PHILIPPINE HISTORY • LEARNING HUB</p>
+        <h1>Welcome Back!</h1>
+        <p class="muted">Log in and continue learning about Dr. José Rizal.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="alert {{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <label for="username">Username</label>
+            <input id="username" name="username" required autocomplete="username"
+                   placeholder="Enter your username">
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required
+                   autocomplete="current-password" placeholder="Enter your password">
+
+            <button class="btn primary full" type="submit">Log In</button>
+        </form>
+
+        <p class="center">No account yet?
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </p>
+
+        <div class="demo-box">
+            <strong>Demo login</strong>
+            <p>Student: <code>student</code> / <code>student123</code></p>
+            <p>Admin: <code>admin</code> / <code>admin123</code></p>
+        </div>
+    </main>
+</body>
+</html>

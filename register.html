@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Rizal Learning Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+    <main class="auth-card">
+        <div class="logo">R</div>
+        <p class="eyebrow">JOIN THE LEARNING HUB</p>
+        <h1>Create an Account</h1>
+        <p class="muted">Register as a student to start learning.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="alert {{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <label for="name">Full Name</label>
+            <input id="name" name="name" required maxlength="100"
+                   placeholder="Enter your full name">
+
+            <label for="username">Username</label>
+            <input id="username" name="username" required minlength="3"
+                   maxlength="40" placeholder="Choose a username">
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required
+                   minlength="6" placeholder="At least 6 characters">
+
+            <button class="btn primary full" type="submit">Register</button>
+        </form>
+
+        <p class="center">Already registered?
+            <a href="{{ url_for('login') }}">Log in here</a>
+        </p>
+    </main>
+</body>
+</html>

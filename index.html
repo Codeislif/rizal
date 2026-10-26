@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rizal Learning Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <a href="{{ url_for('index') }}" class="brand">
+        <span class="brand-mark">R</span>
+        Rizal Learning Hub
+    </a>
+
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <nav id="navigation">
+        <a href="#home">Home</a>
+        <a href="#lessons">Lessons</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#games">Mini Games</a>
+
+        {% if session.role == 'student' %}
+            <a href="#records">My Records</a>
+        {% endif %}
+
+        {% if session.role == 'admin' %}
+            <a href="#admin">Admin Dashboard</a>
+        {% endif %}
+
+        <a href="{{ url_for('logout') }}" class="logout-link">Log Out</a>
+    </nav>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <p class="alert {{ category }}">{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- HOME -->
+    <section id="home" class="hero">
+        <div>
+            <p class="eyebrow">HISTORY • KNOWLEDGE • INSPIRATION</p>
+            <h1>Discover the Life of<br>Dr. José Rizal</h1>
+            <p>
+                Explore the life, writings, and legacy of the Philippine
+                national hero through lessons, quizzes, and interactive games.
+            </p>
+            <a class="btn primary" href="#lessons">Start Learning →</a>
+            <a class="btn light" href="#games">Play Mini Games</a>
+        </div>
+        <div class="hero-art">
+            <div class="portrait">JR</div>
+            <p>Learn from history. Be inspired by knowledge.</p>
+        </div>
+    </section>
+
+    <section class="stats-grid">
+        <article class="stat-card">
+            <span>📚</span>
+            <h2>{{ modules|length }}</h2>
+            <p>Learning Modules</p>
+        </article>
+        <article class="stat-card">
+            <span>🏆</span>
+            <h2>{{ best_score }}%</h2>
+            <p>Best Quiz Score</p>
+        </article>
+        <article class="stat-card">
+            <span>🎮</span>
+            <h2>3</h2>
+            <p>Mini Games</p>
+        </article>
+    </section>
+
+    <!-- LESSONS -->
+    <section id="lessons" class="content-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">KNOWLEDGE LIBRARY</p>
+                <h2>Learning Modules</h2>
+            </div>
+            <span class="muted">Read and explore at your own pace.</span>
+        </div>
+
+        <div class="module-grid">
+            {% for module in modules %}
+            <article class="module-card">
+                <span class="module-number">{{ "%02d"|format(loop.index) }}</span>
+                <h3>{{ module.title }}</h3>
+                <p>{{ module.description }}</p>
+                <button class="btn primary"
+                        onclick="openLesson({{ module.id }})">
+                    Read Lesson →
+                </button>
+
+                <div id="content-{{ module.id }}" class="hidden lesson-data">
+                    {{ module.content }}
+                </div>
+            </article>
+            {% else %}
+            <p>No lessons have been added yet.</p>
+            {% endfor %}
+        </div>
+
+        <article id="lessonViewer" class="lesson-viewer hidden">
+            <button class="btn light" onclick="closeLesson()">Close Lesson ✕</button>
+            <h2 id="lessonTitle"></h2>
+            <p id="lessonText" class="lesson-text"></p>
+            <a href="#quiz" class="btn primary">Test Your Knowledge →</a>
+        </article>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="content-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">TEST YOUR KNOWLEDGE</p>
+                <h2>Rizal Knowledge Quiz</h2>
+            </div>
+        </div>
+
+        <div class="activity-card">
+            <p>Answer all 10 questions. Your score will be saved in your records.</p>
+            <form id="quizForm" action="{{ url_for('save_quiz') }}" method="POST">
+                <div id="quizQuestions"></div>
+                <button class="btn primary" type="submit">Submit Quiz</button>
+            </form>
+            <p id="quizNotice" class="muted"></p>
+        </div>
+    </section>
+
+    <!-- MINI GAMES -->
+    <section id="games" class="content-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">LEARN • PLAY • DISCOVER</p>
+                <h2>Mini Games</h2>
+            </div>
+        </div>
+
+        <div class="games-grid">
+            <article class="game-card">
+                <div class="game-icon">🧠</div>
+                <h3>Rizal Trivia</h3>
+                <p>Answer questions about Rizal's life and achievements.</p>
+                <button class="btn primary" onclick="startTrivia()">Play Trivia</button>
+            </article>
+
+            <article class="game-card">
+                <div class="game-icon">🃏</div>
+                <h3>Memory Match</h3>
+                <p>Match historical facts with their related descriptions.</p>
+                <button class="btn primary" onclick="startMemory()">Play Memory</button>
+            </article>
+
+            <article class="game-card">
+                <div class="game-icon">⏱️</div>
+                <h3>Beat the Clock</h3>
+                <p>Answer as many trivia questions as possible in 30 seconds.</p>
+                <button class="btn primary" onclick="startClockGame()">Start Challenge</button>
+            </article>
+        </div>
+
+        <div id="gameArea" class="activity-card game-area">
+            <div class="game-icon">🎮</div>
+            <h3>Choose a game to begin!</h3>
+            <p>Have fun while learning about Philippine history.</p>
+        </div>
+    </section>
+
+    <!-- STUDENT RECORDS -->
+    {% if session.role == 'student' %}
+    <section id="records" class="content-section">
+        <p class="eyebrow">PERSONAL PROGRESS</p>
+        <h2>My Records</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Activity</th><th>Score</th></tr>
+                </thead>
+                <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>{{ record.created_at }}</td>
+                        <td>{{ record.activity }}</td>
+                        <td>{{ record.score }}/{{ record.total }}
+                            ({{ (record.score * 100 / record.total)|round|int }}%)
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3">No quiz records yet. Try the quiz above!</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ADMIN DASHBOARD -->
+    {% if session.role == 'admin' %}
+    <section id="admin" class="content-section">
+        <p class="eyebrow">ADMINISTRATION</p>
+        <h2>Admin Dashboard</h2>
+
+        <div class="stats-grid">
+            <article class="stat-card">
+                <h2>{{ student_count }}</h2>
+                <p>Student Accounts</p>
+            </article>
+            <article class="stat-card">
+                <h2>{{ module_count }}</h2>
+                <p>Learning Modules</p>
+            </article>
+            <article class="stat-card">
+                <h2>{{ attempt_count }}</h2>
+                <p>Quiz Attempts</p>
+            </article>
+        </div>
+
+        <div class="admin-card">
+            <h3>Add a Learning Module</h3>
+            <form action="{{ url_for('add_module') }}" method="POST">
+                <label for="moduleTitle">Module Title</label>
+                <input id="moduleTitle" name="title" required maxlength="150">
+
+                <label for="moduleDescription">Description</label>
+                <input id="moduleDescription" name="description" required maxlength="300">
+
+                <label for="moduleContent">Lesson Content</label>
+                <textarea id="moduleContent" name="content" rows="5" required></textarea>
+
+                <button class="btn primary" type="submit">Add Module</button>
+            </form>
+        </div>
+
+        <div class="admin-card">
+            <h3>Manage Modules</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Title</th><th>Description</th><th>Action</th></tr></thead>
+                    <tbody>
+                    {% for module in modules %}
+                        <tr>
+                            <td>{{ module.title }}</td>
+                            <td>{{ module.description }}</td>
+                            <td>
+                                <form action="{{ url_for('delete_module', module_id=module.id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Delete this module?')">
+                                    <button class="btn danger" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3">No modules available.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>Student Accounts</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
+                    <tbody>
+                    {% for student in admin_students %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.username }}</td>
+                            <td>{{ student.role }}</td>
+                            <td>
+                                {% if student.role == 'student' %}
+                                <form action="{{ url_for('delete_student', user_id=student.id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Delete this student and their records?')">
+                                    <button class="btn danger" type="submit">Delete</button>
+                                </form>
+                                {% else %}
+                                    Protected
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>All Quiz Records</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Student</th><th>Activity</th><th>Score</th><th>Date</th></tr></thead>
+                    <tbody>
+                    {% for record in all_records %}
+                        <tr>
+                            <td>{{ record.name }} ({{ record.username }})</td>
+                            <td>{{ record.activity }}</td>
+                            <td>{{ record.score }}/{{ record.total }}</td>
+                            <td>{{ record.created_at }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4">No quiz records yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+
+<footer>
+    <p>Rizal Learning Hub · An educational project about Philippine history</p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
